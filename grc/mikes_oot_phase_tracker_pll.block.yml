@@ -1,0 +1,127 @@
+id: mikes_oot_phase_tracker_pll
+label: phase_tracker_pll
+category: '[mikes_oot]'
+flags: [ python, cpp ]
+
+templates:
+  imports: from gnuradio import mikes_oot
+  make: mikes_oot.phase_tracker_pll(${w}, ${max_freq}, ${min_freq}, ${damp_c}, ${gain_set}, ${alpha}, ${beta}, ${kp}, ${ki}, ${kii}, ${kd}, ${lock_thr}, ${filter_b}, ${filter_a})
+  callbacks:
+    - set_loop_bandwidth(${w})
+    - set_max_freq(${max_freq})
+    - set_min_freq(${min_freq})
+    - set_alpha(${alpha})
+    - set_beta(${beta})
+    - set_loop_type(${gain_set})
+    - set_kp(${kp})
+    - set_ki(${ki})
+    - set_kii(${kii})
+    - set_kd(${kd})
+    - set_taps(${filter_b}, ${filter_a})
+
+
+#  Make one 'parameters' list entry for every parameter you want settable from the GUI.
+#     Keys include:
+#     * id (makes the value accessible as \$keyname, e.g. in the make entry)
+#     * label (label shown in the GUI)
+#     * dtype (e.g. int, float, complex, byte, short, xxx_vector, ...)
+parameters:
+- id: w
+  label: Loop bandwidth (2nd order)
+  dtype: float
+  default: 0.0
+  hide: ${ ('none' if gain_set == "'loop_bw'" else 'all') }
+- id: min_freq
+  label: Min Freq
+  dtype: float
+  default: -1.0
+- id: max_freq
+  label: Max Freq
+  dtype: float
+  default: 1.0
+- id: damp_c
+  label: Damping coefficient (2nd order)
+  dtype: float
+  hide: ${ ('none' if gain_set == "'loop_bw'" else 'all') }
+  default: 0.707
+- id: gain_set
+  label: Gain setting by
+  dtype: enum
+  options: ["'loop_bw'", "'alpha_beta'", "'piid'", "'leadlag_2nd_order'"]
+  option_labels:
+    ['2nd order: Loop BW and damping', '2nd order: alpha and beta', 'PIID controller', '3rd order: lead-lag']
+  default: 'loop_bw'
+- id: alpha
+  label: alpha (2nd order)
+  dtype: float
+  default: 1.0
+  hide: ${ ('none' if gain_set == "'alpha_beta'" else 'all') }
+- id: beta
+  label: beta (2nd order)
+  dtype: float
+  default: 1.0
+  hide: ${ ('none' if gain_set == "'alpha_beta'" else 'all') }
+
+- id: kp
+  label: Proportional gain Kp (PIID)
+  dtype: float
+  default: 1.0
+  hide: ${ ('none' if gain_set == "'piid'" else 'all') }
+- id: ki
+  label: Integral gain Ki (PIID)
+  dtype: float
+  default: 0.1
+  hide: ${ ('none' if gain_set == "'piid'" else 'all') }
+- id: kii
+  label: Double integral gain Kii (PIID)
+  dtype: float
+  default: 0.01
+  hide: ${ ('none' if gain_set == "'piid'" else 'all') }
+- id: kd
+  label: Derivative gain Kd (PIID)
+  dtype: float
+  default: 0.0
+  hide: ${ ('none' if gain_set == "'piid'" else 'all') }
+- id: filter_b
+  label: IIR numerator for 3rd order loop
+  dtype: real_vector
+  default: 0.0
+  hide: ${ ('none' if gain_set == "'leadlag_2nd_order'" else 'all') }
+- id: filter_a
+  label: IIR denominator for 3rd order loop
+  dtype: real_vector
+  default: 0.0
+  hide: ${ ('none' if gain_set == "'leadlag_2nd_order'" else 'all') }
+- id: lock_thr
+  label: Locking threshold
+  dtype: float
+  default: 0.1
+
+#  Make one 'inputs' list entry per input and one 'outputs' list entry per output.
+#  Keys include:
+#      * label (an identifier for the GUI)
+#      * domain (optional - stream or message. Default is stream)
+#      * dtype (e.g. int, float, complex, byte, short, xxx_vector, ...)
+#      * vlen (optional - data stream vector length. Default is 1)
+#      * optional (optional - set to 1 for optional inputs. Default is 0)
+inputs:
+- label: in
+  dtype: complex
+
+outputs:
+- label: refout
+  dtype: complex
+- label: carrier
+  dtype: complex
+  optional: 1
+- label: error
+  dtype: float
+  optional: 1
+- label: lock
+  dtype: short
+  optional: 1
+
+
+#  'file_format' specifies the version of the GRC yml format used in the file
+#  and should usually not be changed.
+file_format: 1

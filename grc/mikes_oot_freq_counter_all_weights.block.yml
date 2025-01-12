@@ -1,0 +1,64 @@
+id: mikes_oot_freq_counter_all_weights
+label: freq_counter_all_weights
+category: '[mikes_oot]'
+
+templates:
+  imports: from gnuradio import mikes_oot
+  make: mikes_oot.freq_counter_all_weights(${vec_len}, ${samp_rate}, ${retune_threshold}, ${auto_tune}, ${tune_avg}, ${uhd_channel}, ${baseband})
+
+parameters:
+- id: vec_len
+  label: Input vector length
+  dtype: int
+- id: samp_rate
+  label: Sample rate
+  dtype: int
+- id: retune_threshold
+  label: Retuning threshold (Hz)
+  dtype: float
+- id: auto_tune
+  label: Send tune commands automatically
+  dtype: enum
+  options: ["True", "False"]
+- id: tune_avg
+  label: Averaging time for automatic tuning
+  dtype: int
+- id: uhd_channel
+  label: UHD channel for autotuning
+  dtype: int
+- id: baseband
+  label: Output baseband frequency without RF tuning correction
+  dtype: enum
+  options: ["True", "False"]
+
+inputs:
+- label: vec_in
+  dtype: complex
+  vlen: ${vec_len}
+
+outputs:
+- label: freq_pi_y
+  dtype: f64
+- label: freq_lambda
+  dtype: f64
+  optional: 1
+- label: freq_omega_w
+  dtype: f64
+  optional: 1
+- label: omegaC
+  dtype: f64
+  optional: 1
+- label: omegaD
+  dtype: f64
+  optional: 1
+- label: freq_LO
+  dtype: f64
+  optional: 1
+
+- label: retune_cmd
+  domain: message
+  optional: 1
+
+#  'file_format' specifies the version of the GRC yml format used in the file
+#  and should usually not be changed.
+file_format: 1

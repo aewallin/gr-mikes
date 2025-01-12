@@ -1,0 +1,33 @@
+id: mikes_oot_double_to_float_stream
+label: double_to_float_stream
+category: '[mikes_oot]'
+
+templates:
+  imports: from gnuradio import mikes_oot
+  make: mikes_oot.double_to_float_stream()
+
+#  Make one 'parameters' list entry for every parameter you want settable from the GUI.
+#     Keys include:
+#     * id (makes the value accessible as keyname, e.g. in the make entry)
+#     * label (label shown in the GUI)
+#     * dtype (e.g. int, float, complex, byte, short, xxx_vector, ...)
+#     * default
+parameters:
+
+inputs:
+- label: in
+#  domain: ...
+  dtype: f64
+#  vlen: ...
+#  optional: ...
+
+outputs:
+- label: out
+#  domain: ...
+  dtype: float
+#  vlen: ...
+#  optional: ...
+
+#  'file_format' specifies the version of the GRC yml format used in the file
+#  and should usually not be changed.
+file_format: 1

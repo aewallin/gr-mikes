@@ -1,0 +1,45 @@
+id: mikes_oot_stream_to_vector_64bit
+label: stream_to_vector_64bit
+category: '[mikes_oot]'
+
+templates:
+  imports: from gnuradio import mikes_oot
+  make: mikes_oot.stream_to_vector_64bit(${type.size}*${vlen}, ${num_items})
+
+parameters:
+-   id: type
+    label: IO Type
+    dtype: enum
+    options: [f64, fc64]
+    option_labels: ['double', 'double complex']
+    option_attributes:
+        size: [gr.sizeof_double, 2*gr.sizeof_double]
+    hide: part
+-   id: num_items
+    label: Num Items
+    dtype: int
+    default: '2'
+    hide: ${ 'part' if vlen == 1 else 'none' }
+-   id: vlen
+    label: Vector Length
+    dtype: int
+    default: '1'
+    hide: ${ 'part' if vlen == 1 else 'none' }
+
+inputs:
+-   domain: stream
+    dtype: ${ type }
+    vlen: ${ vlen }
+
+outputs:
+-   domain: stream
+    dtype: ${ type }
+    vlen: ${ vlen*num_items }
+
+asserts:
+- ${ num_items > 0 }
+- ${ vlen >= 1 }
+
+#  'file_format' specifies the version of the GRC yml format used in the file
+#  and should usually not be changed.
+file_format: 1

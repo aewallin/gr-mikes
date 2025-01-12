@@ -394,7 +394,7 @@ namespace gr {
     return d_max_freq;
   }
 
-  float phase_tracker_pll_impl::set_lock_threshold(float threshold)
+  float phase_tracker_pll_impl::set_lock_threshold() // remove unused parameter float threshold
   {
     return d_min_freq;
   }

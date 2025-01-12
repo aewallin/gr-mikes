@@ -130,10 +130,12 @@ freq_counter_all_weights_impl::freq_counter_all_weights_impl(size_t vec_len,
         d_omega_winD[i] = static_cast<double>( int(i) )/(static_cast<double>( d_vlen ) - 1.0 ); // note difference from Danielson (28)!
     }
 
+    /* debug output
     std::cout<<"lambda weight"<<d_tau<<" "<<d_lambda_weight<<std::endl;
     std::cout<<"omega prefactor"<<d_tau<<" "<< d_delta_omega<<std::endl;  // d_tau=1, d_delta_omega=1.2e-11
     std::cout<<"omega win[0] "<< d_omega_win[0] <<std::endl;
     std::cout<<"omega win[N-1] "<< d_omega_win[d_vlen-1] <<std::endl;
+    */
 }
 
 /*

@@ -67,7 +67,7 @@ namespace gr {
                              
       ~phase_tracker_pll_impl();
       
-      float set_lock_threshold(float);
+      float set_lock_threshold();
 
       void set_loop_bandwidth(float bw);
       void set_damping_factor(float df);

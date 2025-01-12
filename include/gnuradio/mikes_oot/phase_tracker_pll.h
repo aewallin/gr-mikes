@@ -40,7 +40,7 @@ namespace gr {
       
       // All these are virtual ???
       virtual bool lock_detector(void) = 0;
-      virtual float set_lock_threshold(float) = 0;
+      virtual float set_lock_threshold() = 0;
 
       virtual void set_loop_bandwidth(float bw) = 0;
       virtual void set_damping_factor(float df) = 0;

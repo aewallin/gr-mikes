@@ -3,3 +3,5 @@
 ./include/gnuradio/mikes_oot/phase_tracker_pll.hNo c++ parser found. Please install castxml.
 ./include/gnuradio/mikes_oot/api.hUnable to find declaration. Matcher: [(decl type==namespace_t) and (name==gr)]
 ./include/gnuradio/mikes_oot/api.hUnable to find declaration. Matcher: [(decl type==namespace_t) and (name==gr)]
+./include/gnuradio/mikes_oot/phase_tracker_pll.hError occurred while running CASTXML xml file does not exist
+./include/gnuradio/mikes_oot/phase_tracker_pll.hError occurred while running CASTXML xml file does not exist

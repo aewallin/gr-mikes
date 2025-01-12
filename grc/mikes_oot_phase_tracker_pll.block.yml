@@ -18,6 +18,7 @@ templates:
     - set_kii(${kii})
     - set_kd(${kd})
     - set_taps(${filter_b}, ${filter_a})
+    - set_lock_threshold(${lock_thr})
 
 
 #  Make one 'parameters' list entry for every parameter you want settable from the GUI.

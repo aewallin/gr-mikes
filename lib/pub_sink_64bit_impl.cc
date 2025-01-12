@@ -49,7 +49,7 @@ namespace gr {
     int
     pub_sink_64bit_impl::work(int noutput_items,
         gr_vector_const_void_star &input_items,
-        gr_vector_void_star &output_items)
+        __attribute__((unused)) gr_vector_void_star &output_items)
     {
       return send_message(input_items[0], noutput_items, nitems_read(0));
 

@@ -31,9 +31,9 @@ private:
     double * d_lambda_win;
     double * d_t_fit;
     double * d_phi;
-    double * d_phi_uw;
+    //double * d_phi_uw; // old pi-counter, not used
     int *    i_n_uw;
-    double * d_pi_y;
+    //double * d_pi_y; // old pi-counter code, not used
       
     double d_c0, d_c1, d_cov00, d_cov01, d_cov11, d_sumsq;
     
@@ -54,9 +54,9 @@ private:
     
     int d_i_avg;
     int i_ncycles;
-    double d_f_pi_y;
+    double d_f_pi_y; // Pi-counter output
+    double d_f_lambda; // Lambda-counter output
     double d_f_pi_w;
-    double d_f_lambda;
     double d_f_omega_lsq;
     double d_f_omega_w;
     double d_omegaCi;
@@ -75,7 +75,7 @@ private:
     void data_arg(double *phi, const gr_complex *iq, size_t nitems, size_t offset);
     void unwrap(double *phi, double *phi_uw, size_t nitems);
     int count_unwrap(double *phi, size_t nitems, int *n);
-    void diff(const double *data_in, double *data_out, size_t nitems, size_t offset);
+    //void diff(const double *data_in, double *data_out, size_t nitems, size_t offset);
 
 public:
     freq_counter_all_weights_impl(size_t vec_len,

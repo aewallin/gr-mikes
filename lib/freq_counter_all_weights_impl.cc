@@ -78,8 +78,9 @@ freq_counter_all_weights_impl::freq_counter_all_weights_impl(size_t vec_len,
                                                d_f_lo(0.0),
                                                d_i_avg(0),
                                                d_f_pi_y(0.0),
-                                               d_f_pi_w(0.0),
                                                d_f_lambda(0.0),
+                                               d_f_pi_w(0.0),
+                                               
                                                d_f_omega_lsq(0.0),
                                                d_f_omega_w(0.0), d_omegaC(0.0), d_omegaD(0.0)
 {
@@ -103,10 +104,10 @@ freq_counter_all_weights_impl::freq_counter_all_weights_impl(size_t vec_len,
     // Phase
     d_phi = new double[d_vlen*2];
     // Unwrapped phase
-    d_phi_uw = new double[d_vlen*2];
+    //d_phi_uw = new double[d_vlen*2]; // remove, not used
     i_n_uw = new int[d_vlen*2];
     // Diffed y
-    d_pi_y = new double[d_vlen]; // FIXME NOT USED
+    //d_pi_y = new double[d_vlen]; // FIXME NOT USED
     // Omega counter, continuous weight (12/tau**3)*t    in the window -tau/2 to tau/2
     //d_delta_omega = 12.0/(d_tau*d_tau*d_tau)*(1.0/d_samp_rate);
     double d_tau0 = static_cast<double>(1.0) / static_cast<double>(d_samp_rate);
@@ -173,17 +174,17 @@ int freq_counter_all_weights_impl::work(int noutput_items,
     // Compute phase d_phi = atan2( iq.imag, iq.real ), data_arg(double *phi, const gr_complex *iq, size_t nitems, size_t offset)
     freq_counter_all_weights_impl::data_arg(d_phi, in, 2*d_vlen, i_input*d_vlen);
     // Unwrap
-    freq_counter_all_weights_impl::unwrap(d_phi, d_phi_uw, 2*d_vlen);
+    //freq_counter_all_weights_impl::unwrap(d_phi, d_phi_uw, 2*d_vlen);
     // Moved pi-counter to the end of the window. Diff calculates its result using points up to d_vlen+1, so we have to start one point earlier
-    freq_counter_all_weights_impl::diff(d_phi_uw, d_pi_y, d_vlen, d_vlen-1); // FIXME NOT USED?
+    //freq_counter_all_weights_impl::diff(d_phi_uw, d_pi_y, d_vlen, d_vlen-1); // FIXME NOT USED?
     // Move to the end of the window
     i_ncycles = count_unwrap(d_phi+d_vlen-1, d_vlen+1, i_n_uw );
-    // New version, at the end of the window
+    // Pi-counter output, New version, at the end of the window
     d_f_pi_y = (i_ncycles + (-d_phi[d_vlen-1]+d_phi[2*d_vlen-1])/(m_2pi) )/ (( static_cast<double>(d_vlen) )/ static_cast<double>(d_samp_rate) ) ;
     //double frac_cycles = (-d_phi[d_vlen-1]+d_phi[2*d_vlen-1])/(m_2pi) ;
     //std::cout<<"i_ncycles " << i_ncycles << " frac_cycles " << frac_cycles << " d_f_pi_y "<< d_f_pi_y << std::endl;
 
-    i_ncycles = count_unwrap(d_phi, 2*d_vlen, i_n_uw ); // for whole 2tau length dataset
+    i_ncycles = count_unwrap(d_phi, 2*d_vlen, i_n_uw ); // Lamda counter, for whole 2tau length dataset
 
     double lambda_f = 0.0;  // fractional cycles
     long int lambda_i = 0;  // integer cycles
@@ -321,6 +322,7 @@ int freq_counter_all_weights_impl::work(int noutput_items,
       return n_uw;
     }
 
+/*
     void freq_counter_all_weights_impl::diff(const double *data_in, double *data_out, size_t nitems, size_t offset)
     {
       for(size_t i = 0; i < nitems; i++)
@@ -328,6 +330,7 @@ int freq_counter_all_weights_impl::work(int noutput_items,
         data_out[i] = data_in[i+1+offset] - data_in[i+offset];
       }
     }
+*/
 
 } /* namespace mikes_oot */
 } /* namespace gr */

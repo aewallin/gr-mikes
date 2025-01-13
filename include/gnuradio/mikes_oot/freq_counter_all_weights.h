@@ -5,8 +5,10 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#ifndef INCLUDED_MIKES_OOT_FREQ_COUNTER_ALL_WEIGHTS_H
-#define INCLUDED_MIKES_OOT_FREQ_COUNTER_ALL_WEIGHTS_H
+#include <memory>
+
+#ifndef INCLUDE_GNURADIO_MIKES_OOT_FREQ_COUNTER_ALL_WEIGHTS_H_
+#define INCLUDE_GNURADIO_MIKES_OOT_FREQ_COUNTER_ALL_WEIGHTS_H_
 
 #include <gnuradio/mikes_oot/api.h>
 #include <gnuradio/sync_block.h>
@@ -19,9 +21,8 @@ namespace mikes_oot {
  * \ingroup mikes_oot
  *
  */
-class MIKES_OOT_API freq_counter_all_weights : virtual public gr::sync_block
-{
-public:
+class MIKES_OOT_API freq_counter_all_weights : virtual public gr::sync_block {
+ public:
     typedef std::shared_ptr<freq_counter_all_weights> sptr;
 
     /*!
@@ -42,7 +43,7 @@ public:
                      bool baseband);
 };
 
-} // namespace mikes_oot
-} // namespace gr
+}  // namespace mikes_oot
+}  // namespace gr
 
-#endif /* INCLUDED_MIKES_OOT_FREQ_COUNTER_ALL_WEIGHTS_H */
+#endif  // INCLUDE_GNURADIO_MIKES_OOT_FREQ_COUNTER_ALL_WEIGHTS_H_

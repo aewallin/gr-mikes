@@ -8,18 +8,20 @@
  *
  */
 
-#ifndef INCLUDED_ZEROMQ_BASE_IMPL_H
-#define INCLUDED_ZEROMQ_BASE_IMPL_H
+#ifndef LIB_BASE_IMPL_H_
+#define LIB_BASE_IMPL_H_
+
+#include <gnuradio/sync_block.h>
+#include <vector>
+#include <string>
 
 #include "zmq_common_impl.h"
-#include <gnuradio/sync_block.h>
 
 namespace gr {
 namespace mikes_oot {
 
-class base_impl : public virtual gr::sync_block
-{
-public:
+class base_impl : public virtual gr::sync_block {
+ public:
     base_impl(int type,
               size_t itemsize,
               size_t vlen,
@@ -28,7 +30,7 @@ public:
               const std::string& key = "");
     ~base_impl() override;
 
-protected:
+ protected:
     std::string last_endpoint();
     zmq::context_t d_context;
     zmq::socket_t d_socket;
@@ -38,9 +40,8 @@ protected:
     const std::string d_key;
 };
 
-class base_sink_impl : public base_impl
-{
-public:
+class base_sink_impl : public base_impl {
+ public:
     base_sink_impl(int type,
                    size_t itemsize,
                    size_t vlen,
@@ -50,13 +51,13 @@ public:
                    int hwm,
                    const std::string& key = "");
 
-protected:
-    int send_message(const void* in_buf, const int in_nitems, const uint64_t in_offset);
+ protected:
+    int send_message(const void* in_buf, const int in_nitems,
+                        const uint64_t in_offset);
 };
 
-class base_source_impl : public base_impl
-{
-public:
+class base_source_impl : public base_impl {
+ public:
     base_source_impl(int type,
                      size_t itemsize,
                      size_t vlen,
@@ -66,20 +67,19 @@ public:
                      int hwm,
                      const std::string& key = "");
 
-protected:
+ protected:
     zmq::message_t d_msg;
     std::vector<gr::tag_t> d_tags;
     size_t d_consumed_bytes;
     int d_consumed_items;
 
     bool has_pending();
-    int flush_pending(void* out_buf, const int out_nitems, const uint64_t out_offset);
+    int flush_pending(void* out_buf, const int out_nitems,
+                        const uint64_t out_offset);
     bool load_message(bool wait);
 };
 
-} // namespace zeromq
-} // namespace gr
+}  // namespace mikes_oot
+}  // namespace gr
 
-#endif /* INCLUDED_ZEROMQ_BASE_IMPL_H */
-
-// vim: ts=2 sw=2 expandtab
+#endif  // LIB_BASE_IMPL_H_

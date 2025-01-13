@@ -12,12 +12,13 @@
 #include "config.h"
 #endif
 
+#include <gnuradio/io_signature.h>
+#include <algorithm>
 #include "base_impl.h"
 #include "tag_headers.h"
-#include <gnuradio/io_signature.h>
 
 namespace {
-constexpr int LINGER_DEFAULT = 1000; // 1 second.
+constexpr int LINGER_DEFAULT = 1000;  // 1 second.
 }
 
 namespace gr {
@@ -34,8 +35,7 @@ base_impl::base_impl(int type,
       d_vsize(itemsize * vlen),
       d_timeout(timeout),
       d_pass_tags(pass_tags),
-      d_key(key)
-{
+      d_key(key) {
     /* "Fix" timeout value (ms for new API, us for old API) */
     int major, minor, patch;
     zmq::version(&major, &minor, &patch);
@@ -47,8 +47,7 @@ base_impl::base_impl(int type,
 
 base_impl::~base_impl() {}
 
-std::string base_impl::last_endpoint()
-{
+std::string base_impl::last_endpoint() {
 #if USE_NEW_CPPZMQ_SET_GET
     return d_socket.get(zmq::sockopt::last_endpoint);
 #else
@@ -68,8 +67,7 @@ base_sink_impl::base_sink_impl(int type,
                                bool pass_tags,
                                int hwm,
                                const std::string& key)
-    : base_impl(type, itemsize, vlen, timeout, pass_tags, key)
-{
+    : base_impl(type, itemsize, vlen, timeout, pass_tags, key) {
     /* Set high watermark */
     if (hwm >= 0) {
 #if USE_NEW_CPPZMQ_SET_GET
@@ -77,7 +75,7 @@ base_sink_impl::base_sink_impl(int type,
 #else
 #ifdef ZMQ_SNDHWM
         d_socket.setsockopt(ZMQ_SNDHWM, &hwm, sizeof(hwm));
-#else // major < 3
+#else  // major < 3
         uint64_t tmp = hwm;
         d_socket.setsockopt(ZMQ_HWM, &tmp, sizeof(tmp));
 #endif
@@ -97,8 +95,7 @@ base_sink_impl::base_sink_impl(int type,
 
 int base_sink_impl::send_message(const void* in_buf,
                                  const int in_nitems,
-                                 const uint64_t in_offset)
-{
+                                 const uint64_t in_offset) {
     /* Send key if it exists */
     if (!d_key.empty()) {
         zmq::message_t key_message(d_key.size());
@@ -150,8 +147,7 @@ base_source_impl::base_source_impl(int type,
                                    const std::string& key)
     : base_impl(type, itemsize, vlen, timeout, pass_tags, key),
       d_consumed_bytes(0),
-      d_consumed_items(0)
-{
+      d_consumed_items(0) {
     /* Set high watermark */
     if (hwm >= 0) {
 #if USE_NEW_CPPZMQ_SET_GET
@@ -159,7 +155,7 @@ base_source_impl::base_source_impl(int type,
 #else
 #ifdef ZMQ_RCVHWM
         d_socket.setsockopt(ZMQ_RCVHWM, &hwm, sizeof(hwm));
-#else // major < 3
+#else  // major < 3
         uint64_t tmp = hwm;
         d_socket.setsockopt(ZMQ_HWM, &tmp, sizeof(tmp));
 #endif
@@ -177,12 +173,13 @@ base_source_impl::base_source_impl(int type,
     d_socket.connect(address);
 }
 
-bool base_source_impl::has_pending() { return d_msg.size() > d_consumed_bytes; }
+bool base_source_impl::has_pending() {
+    return d_msg.size() > d_consumed_bytes;
+}
 
 int base_source_impl::flush_pending(void* out_buf,
                                     const int out_nitems,
-                                    const uint64_t out_offset)
-{
+                                    const uint64_t out_offset) {
     /* How much to copy in this call */
     int to_copy_items =
         std::min(out_nitems, (int)((d_msg.size() - d_consumed_bytes) / d_vsize));
@@ -208,8 +205,7 @@ int base_source_impl::flush_pending(void* out_buf,
     return to_copy_items;
 }
 
-bool base_source_impl::load_message(bool wait)
-{
+bool base_source_impl::load_message(bool wait) {
     /* Poll for input */
     zmq::pollitem_t items[] = { { static_cast<void*>(d_socket), 0, ZMQ_POLLIN, 0 } };
     zmq::poll(&items[0], 1, std::chrono::milliseconds{ wait ? d_timeout : 0 });
@@ -285,12 +281,12 @@ bool base_source_impl::load_message(bool wait)
     /* Each message must contain an integer multiple of data vectors */
     if ((d_msg.size() - d_consumed_bytes) % d_vsize != 0) {
         throw std::runtime_error("Incompatible vector sizes: need a multiple of " +
-                                 std::to_string(d_vsize) + " bytes per message");
+                            std::to_string(d_vsize) + " bytes per message");
     }
 
     /* We got one ! */
     return true;
 }
 
-} /* namespace zeromq */
-} /* namespace gr */
+}  // namespace mikes_oot
+}  // namespace gr

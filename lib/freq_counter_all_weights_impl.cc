@@ -5,20 +5,15 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
+#include <gnuradio/math.h>
+#include <gnuradio/io_signature.h>
+#include <ranges>
 #include <iostream>
 #include <iomanip>
 #include <numeric>
-#include <ranges>
 
-#include <gnuradio/math.h>
-#include <gnuradio/io_signature.h>
 
 #include "freq_counter_all_weights_impl.h"
-
-
-
-//  Use GSL for fitting
-//  #include <gsl/gsl_fit.h>
 
 //  Fancy way of getting constants
 //  constexpr double am_pi = std::acos(-1);
@@ -48,8 +43,7 @@ freq_counter_all_weights::sptr freq_counter_all_weights::make(size_t vec_len,
                                                                     baseband);
 }
 
-// static int ios[] = { sizeof(gr_complex), sizeof(gr_complex), sizeof(float), sizeof(short) };
-// static std::vector<int> iosig(ios, ios + sizeof(ios) / sizeof(int));
+
 
 /*
  * The private constructor
@@ -65,7 +59,7 @@ freq_counter_all_weights_impl::freq_counter_all_weights_impl(size_t vec_len,
                      gr::io_signature::make( 1  /* min inputs */, 1  /* max inputs */, sizeof(input_type)*vec_len),
                      gr::io_signature::makev(1,  // min outputs
                                              8,  // max outputs
-                                             { sizeof(output_type),  // 5 outputs, change to 8
+                                             { sizeof(output_type),  // 8 outputs
                                                sizeof(output_type),
                                                sizeof(output_type),
                                                sizeof(output_type),
@@ -84,8 +78,6 @@ freq_counter_all_weights_impl::freq_counter_all_weights_impl(size_t vec_len,
                                                d_i_avg(0),
                                                d_f_pi_y(0.0),
                                                d_f_lambda(0.0),
-                                               d_f_pi_w(0.0),
-                                               d_f_omega_lsq(0.0),
                                                d_f_omega_w(0.0),
                                                d_omegaC(0.0),
                                                d_omegaD(0.0) {
@@ -95,37 +87,18 @@ freq_counter_all_weights_impl::freq_counter_all_weights_impl(size_t vec_len,
 
     // Averaging time in s
     d_tau = static_cast<double>(d_vlen)/static_cast<double>(d_samp_rate);
+    double d_tau0 = static_cast<double>(1.0) / static_cast<double>(d_samp_rate);
 
-    // Weight for lambda counter
-    d_lambda_weight = 1.0/(d_tau*d_tau);  // FIXME not used?
 
     // Memory allocations
     // Omega counter window
     d_omega_win = new double[d_vlen];
     d_omega_winC = new double[d_vlen];  // Danielson (27)
     d_omega_winD = new double[d_vlen];  // Danielson (28)
-    // Time data for fit
-    d_t_fit = new double[d_vlen];  // FIXME NOT USED
-    // Phase
-    d_phi = new double[d_vlen*2];
-    // Unwrapped phase
-    // d_phi_uw = new double[d_vlen*2]; // remove, not used
-    i_n_uw = new int[d_vlen*2];
-    // Diffed y
-    // d_pi_y = new double[d_vlen]; // FIXME NOT USED
-    // Omega counter, continuous weight (12/tau**3)*t    in the window -tau/2 to tau/2
-    // d_delta_omega = 12.0/(d_tau*d_tau*d_tau)*(1.0/d_samp_rate);
-    double d_tau0 = static_cast<double>(1.0) / static_cast<double>(d_samp_rate);
+    d_delta_omega = 12.0/((d_tau0)*static_cast<double>(d_vlen)*(static_cast<double>(d_vlen)-1.0)*(static_cast<double>(d_vlen)+1.0));  // Danielson (21)
 
-    d_delta_omega = 12.0/((d_tau0)*double(d_vlen)*(double(d_vlen)-1.0)*(double(d_vlen)+1.0));  // Danielson (21)
-    // Omega counter quatization error correction factor
-    // d_omega_corr = 1.0 - 1.0/double(long(d_vlen)*long(d_vlen) );  // FIXME NOT USED??
-    // Offset for data windowing
-    d_sym_offset = d_vlen/2;  // was d_vlen / 2; with history(2) FIXME NOT USED
-    // time axis for fitting
-    for (size_t i = 0; i < (d_vlen); i++) {
-        d_t_fit[i] = static_cast<double>(i) / d_samp_rate;  // FIXME not used??
-    }
+    d_phi = new double[d_vlen*2];  // Phase
+    i_n_uw = new int[d_vlen*2];    // Unwrapped phase
 
     // omega counter window
     for (size_t i = 0; i < d_vlen; i++) {
@@ -140,7 +113,8 @@ freq_counter_all_weights_impl::freq_counter_all_weights_impl(size_t vec_len,
     std::cout<<"omega win[0] "<< d_omega_win[0] <<std::endl;
     std::cout<<"omega win[N-1] "<< d_omega_win[d_vlen-1] <<std::endl;
     */
-}
+}  // end constructor
+
 
 /*
  * Our virtual destructor.
@@ -180,10 +154,10 @@ int freq_counter_all_weights_impl::work(int noutput_items,
     // freq_counter_all_weights_impl::diff(d_phi_uw, d_pi_y, d_vlen, d_vlen-1); // FIXME NOT USED?
     // Move to the end of the window
     i_ncycles = count_unwrap(d_phi+d_vlen-1, d_vlen+1, i_n_uw);
+    
     // Pi-counter output, New version, at the end of the window
-    d_f_pi_y = (i_ncycles + (-d_phi[d_vlen-1]+d_phi[2*d_vlen-1])/(m_2pi))/ ((static_cast<double>(d_vlen))/static_cast<double>(d_samp_rate));
-    //  double frac_cycles = (-d_phi[d_vlen-1]+d_phi[2*d_vlen-1])/(m_2pi) ;
-    //  std::cout<<"i_ncycles " << i_ncycles << " frac_cycles " << frac_cycles << " d_f_pi_y "<< d_f_pi_y << std::endl;
+    d_f_pi_y = (i_ncycles + (-d_phi[d_vlen-1]+d_phi[2*d_vlen-1])/(m_2pi))/ 
+                ((static_cast<double>(d_vlen))/static_cast<double>(d_samp_rate));
 
     i_ncycles = count_unwrap(d_phi, 2*d_vlen, i_n_uw);  // Lamda counter, for whole 2tau length dataset
 
@@ -194,13 +168,12 @@ int freq_counter_all_weights_impl::work(int noutput_items,
 
     for (size_t i_vec = 0; i_vec < d_vlen; i_vec++) {
       lambda_i += i_n_uw[d_vlen+i_vec] - i_n_uw[d_vlen-1-i_vec];
-      //  std::cout << i_n_uw[2*d_vlen-1-i_vec] << " ";
     }
     // sum of integer and fractional cycles
     d_f_lambda  = ((static_cast<double>(d_samp_rate) ) / (static_cast<double>(d_vlen*d_vlen)) )*(static_cast<double>(lambda_i) + lambda_f/  m_2pi);
 
     // Omega weight
-    d_omega_sum = 0.0;
+    //d_omega_sum = 0.0;
     d_omegaCi = 0.0;
     d_omegaDi = 0.0;
     d_omegaCf = 0.0;
@@ -227,7 +200,7 @@ int freq_counter_all_weights_impl::work(int noutput_items,
 
     if (d_auto_tune) {
         if (d_i_avg < d_tune_avg) {
-            d_f_sum += d_f_omega_lsq;
+            d_f_sum += d_f_pi_y;
             d_i_avg += 1;
         } else {
         d_f_sum /= d_tune_avg;
@@ -267,61 +240,49 @@ int freq_counter_all_weights_impl::work(int noutput_items,
     return noutput_items;
 }
 
-    void freq_counter_all_weights_impl::data_arg(double *phi,
-                    const gr_complex *iq, size_t nitems, size_t offset) {
-      // phi is always of length d_vlen,
-      // but iq is in general noutput_items * d_vlen * 2
-      // so index accordingly
-      for (size_t i = 0; i < nitems; i++) {
-        phi[i] = std::atan2(static_cast<double>(iq[offset+i].imag()),
-                            static_cast<double>(iq[offset+i].real()));
-      }
-    }
+void freq_counter_all_weights_impl::data_arg(double *phi,
+                const gr_complex *iq, size_t nitems, size_t offset) {
+  // phi is always of length d_vlen,
+  // but iq is in general noutput_items * d_vlen * 2
+  // so index accordingly
+  for (size_t i = 0; i < nitems; i++) {
+    phi[i] = std::atan2(static_cast<double>(iq[offset+i].imag()),
+                        static_cast<double>(iq[offset+i].real()));
+  }
+}
 
-    void freq_counter_all_weights_impl::unwrap(double *phi, double *phi_uw,
-                                                            size_t nitems) {
-      double d_term, c_term = 0.0;
-      int n_pos_uw = 0, n_neg_uw = 0;
-      phi_uw[0] = phi[0];
-      for (size_t i = 1; i < nitems; i++) {
-        d_term = phi[i] - phi[i-1];
-        if (d_term > m_pi) {
-          c_term -= m_2pi;
-          n_pos_uw += 1;
-        } else if (d_term < -m_pi) {
-          c_term += m_2pi;
-          n_neg_uw += 1;
-        }
-        phi_uw[i] = phi[i] + c_term;
-      }
+void freq_counter_all_weights_impl::unwrap(double *phi, double *phi_uw,
+                                                        size_t nitems) {
+  double d_term, c_term = 0.0;
+  phi_uw[0] = phi[0];
+  for (size_t i = 1; i < nitems; i++) {
+    d_term = phi[i] - phi[i-1];
+    if (d_term > m_pi) {
+      c_term -= m_2pi;
+    } else if (d_term < -m_pi) {
+      c_term += m_2pi;
     }
+    phi_uw[i] = phi[i] + c_term;
+  }
+}
 
-    int freq_counter_all_weights_impl::count_unwrap(double *phi,
-                                                    size_t nitems, int *n) {
-      double d_term;
-      int n_uw = 0;
-      n[0] = 0;
-      for (size_t i = 1; i < nitems; i++) {
-        d_term = phi[i] - phi[i-1];
-        if (d_term > m_pi) {
-          n_uw -= 1;
-        } else if (d_term < -m_pi) {
-          n_uw += 1;
-        }
-        n[i] = n_uw;
-      }
-      return n_uw;
+int freq_counter_all_weights_impl::count_unwrap(double *phi,
+                                                size_t nitems, int *n) {
+  double d_term;
+  int n_uw = 0;
+  n[0] = 0;
+  for (size_t i = 1; i < nitems; i++) {
+    d_term = phi[i] - phi[i-1];
+    if (d_term > m_pi) {
+      n_uw -= 1;
+    } else if (d_term < -m_pi) {
+      n_uw += 1;
     }
+    n[i] = n_uw;
+  }
+  return n_uw;
+}
 
-/*
-    void freq_counter_all_weights_impl::diff(const double *data_in, double *data_out, size_t nitems, size_t offset)
-    {
-      for(size_t i = 0; i < nitems; i++)
-      {
-        data_out[i] = data_in[i+1+offset] - data_in[i+offset];
-      }
-    }
-*/
 
 } /* namespace mikes_oot */
 } /* namespace gr */

@@ -117,11 +117,14 @@ class qa_freq_counter_all_weights(gr_unittest.TestCase):
 
     def test_004(self):
         self.run_fixed_freq_test(123.456, N_gates=int(pow(2,12)))
-    def test_004(self):
+        
+    def test_005(self):
         self.run_fixed_freq_test(123.456, N_gates=int(pow(2,13)))
-    def test_004(self):
+        
+    def test_006(self):
         self.run_fixed_freq_test(123.456, N_gates=int(pow(2,14)))
-    def test_004(self):
+        
+    def test_007(self):
         self.run_fixed_freq_test(123.456, N_gates=int(pow(2,15)))
 
 

@@ -22,7 +22,7 @@ add_subdirectory(bindings)
 GR_PYTHON_INSTALL(
     FILES
     __init__.py
-    DESTINATION ${GR_PYTHON_DIR}/gnuradio/mikes_oot
+    double_vector_sink.py DESTINATION ${GR_PYTHON_DIR}/gnuradio/mikes_oot
 )
 
 ########################################################################

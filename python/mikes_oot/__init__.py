@@ -20,6 +20,7 @@ except ModuleNotFoundError:
     pass
 
 # import any pure python here
+from .double_vector_sink import double_vector_sink
 
 
 

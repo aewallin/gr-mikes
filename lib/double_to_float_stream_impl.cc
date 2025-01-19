@@ -46,7 +46,7 @@ namespace gr {
       auto out = static_cast<output_type*>(output_items[0]);
 
       for (int index = 0; index < noutput_items; index++) {
-         out[index] = in[index];  
+         out[index] = static_cast<output_type>( in[index] );  
       }
 
       return noutput_items;

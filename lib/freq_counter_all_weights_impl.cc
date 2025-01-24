@@ -7,7 +7,7 @@
 
 #include <gnuradio/math.h>
 #include <gnuradio/io_signature.h>
-#include <ranges>
+//#include <ranges>
 #include <iostream>
 #include <iomanip>
 #include <numeric>

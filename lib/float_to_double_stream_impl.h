@@ -13,8 +13,7 @@
 namespace gr {
 namespace mikes_oot {
 
-class float_to_double_stream_impl : public float_to_double_stream
-{
+class float_to_double_stream_impl : public float_to_double_stream {
 private:
     // Nothing to declare in this block.
 
@@ -28,7 +27,7 @@ public:
              gr_vector_void_star& output_items);
 };
 
-} // namespace mikes_oot
-} // namespace gr
+}  // namespace mikes_oot
+}  // namespace gr
 
 #endif /* INCLUDED_MIKES_OOT_FLOAT_TO_DOUBLE_STREAM_IMPL_H */

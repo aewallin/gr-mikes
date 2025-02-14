@@ -14,10 +14,8 @@ namespace gr {
     using input_type = double;
     using output_type = float;
     double_to_float_stream::sptr
-    double_to_float_stream::make()
-    {
-      return gnuradio::make_block_sptr<double_to_float_stream_impl>(
-        );
+    double_to_float_stream::make() {
+      return gnuradio::make_block_sptr<double_to_float_stream_impl>();
     }
 
 
@@ -33,20 +31,18 @@ namespace gr {
     /*
      * Our virtual destructor.
      */
-    double_to_float_stream_impl::~double_to_float_stream_impl()
-    {
+    double_to_float_stream_impl::~double_to_float_stream_impl() {
     }
 
     int
     double_to_float_stream_impl::work(int noutput_items,
         gr_vector_const_void_star &input_items,
-        gr_vector_void_star &output_items)
-    {
+        gr_vector_void_star &output_items) {
       auto in = static_cast<const input_type*>(input_items[0]);
       auto out = static_cast<output_type*>(output_items[0]);
 
       for (int index = 0; index < noutput_items; index++) {
-         out[index] = static_cast<output_type>( in[index] );  
+         out[index] = static_cast<output_type>(in[index]);
       }
 
       return noutput_items;

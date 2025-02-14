@@ -28,7 +28,7 @@ endif()
 # Make sure our local CMake Modules path comes first
 list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 # Find gnuradio to get access to the cmake modules
-find_package(Gnuradio "3.10" REQUIRED COMPONETS zeromq blocks)
+find_package(Gnuradio "3.10" REQUIRED COMPONENTS zeromq blocks)
 find_package(GSL REQUIRED)
 find_package(ZeroMQ REQUIRED)
 

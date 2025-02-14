@@ -7,7 +7,6 @@
 
 #include <gnuradio/math.h>
 #include <gnuradio/io_signature.h>
-//#include <ranges>
 #include <iostream>
 #include <iomanip>
 #include <numeric>
@@ -56,7 +55,9 @@ freq_counter_all_weights_impl::freq_counter_all_weights_impl(size_t vec_len,
                                                               int uhd_channel,
                                                               bool baseband)
     : gr::sync_block("freq_counter_all_weights",
-                     gr::io_signature::make( 1  /* min inputs */, 1  /* max inputs */, sizeof(input_type)*vec_len),
+                     gr::io_signature::make( 1  /* min inputs */,
+                                             1  /* max inputs */,
+                                             sizeof(input_type)*vec_len),
                      gr::io_signature::makev(1,  // min outputs
                                              8,  // max outputs
                                              { sizeof(output_type),  // 8 outputs
@@ -146,20 +147,15 @@ int freq_counter_all_weights_impl::work(int noutput_items,
             d_f_lo = pmt::to_double(tag.value);
     }
 
-    // Compute phase d_phi = atan2( iq.imag, iq.real ), data_arg(double *phi, const gr_complex *iq, size_t nitems, size_t offset)
+    // Compute phase d_phi = atan2( iq.imag, iq.real )
     freq_counter_all_weights_impl::data_arg(d_phi, in, 2*d_vlen, i_input*d_vlen);
-    // Unwrap
-    // freq_counter_all_weights_impl::unwrap(d_phi, d_phi_uw, 2*d_vlen);
-    // Moved pi-counter to the end of the window. Diff calculates its result using points up to d_vlen+1, so we have to start one point earlier
-    // freq_counter_all_weights_impl::diff(d_phi_uw, d_pi_y, d_vlen, d_vlen-1); // FIXME NOT USED?
-    // Move to the end of the window
+    // Unwrap, and count 2pi cycles
     i_ncycles = count_unwrap(d_phi+d_vlen-1, d_vlen+1, i_n_uw);
-    
     // Pi-counter output, New version, at the end of the window
     d_f_pi_y = (i_ncycles + (-d_phi[d_vlen-1]+d_phi[2*d_vlen-1])/(m_2pi))/ 
                 ((static_cast<double>(d_vlen))/static_cast<double>(d_samp_rate));
 
-    i_ncycles = count_unwrap(d_phi, 2*d_vlen, i_n_uw);  // Lamda counter, for whole 2tau length dataset
+    i_ncycles = count_unwrap(d_phi, 2*d_vlen, i_n_uw);  // Lambda counter, for whole 2tau length dataset
 
     double lambda_f = 0.0;  // fractional cycles
     long int lambda_i = 0;  // integer cycles
@@ -173,7 +169,6 @@ int freq_counter_all_weights_impl::work(int noutput_items,
     d_f_lambda  = ((static_cast<double>(d_samp_rate) ) / (static_cast<double>(d_vlen*d_vlen)) )*(static_cast<double>(lambda_i) + lambda_f/  m_2pi);
 
     // Omega weight
-    //d_omega_sum = 0.0;
     d_omegaCi = 0.0;
     d_omegaDi = 0.0;
     d_omegaCf = 0.0;
@@ -182,7 +177,7 @@ int freq_counter_all_weights_impl::work(int noutput_items,
     double omega_i = 0.0;
     // Compute weighted sum for f_omega, C_omega, D_omega
     for (size_t i_vec = 0; i_vec < d_vlen; i_vec++) {
-       // normalize to d_vlen-1 value!?
+        // normalize to d_vlen-1 value!?
         d_omegaCf += d_omega_winC[i_vec]*(d_phi[i_vec+d_vlen]  - d_phi[d_vlen-1]);
         d_omegaCi += d_omega_winC[i_vec]*(i_n_uw[i_vec+d_vlen] - i_n_uw[d_vlen-1]);
 
@@ -251,6 +246,8 @@ void freq_counter_all_weights_impl::data_arg(double *phi,
   }
 }
 
+// not used
+/*
 void freq_counter_all_weights_impl::unwrap(double *phi, double *phi_uw,
                                                         size_t nitems) {
   double d_term, c_term = 0.0;
@@ -265,6 +262,7 @@ void freq_counter_all_weights_impl::unwrap(double *phi, double *phi_uw,
     phi_uw[i] = phi[i] + c_term;
   }
 }
+*/
 
 int freq_counter_all_weights_impl::count_unwrap(double *phi,
                                                 size_t nitems, int *n) {

@@ -13,8 +13,8 @@
 /* If manual edits are made, the following tags should be modified accordingly.    */
 /* BINDTOOL_GEN_AUTOMATIC(0)                                                       */
 /* BINDTOOL_USE_PYGCCXML(0)                                                        */
-/* BINDTOOL_HEADER_FILE(freq_counter_all_weights.h) */
-/* BINDTOOL_HEADER_FILE_HASH(aba3202d39f791e79d32044c61bf8200)                     */
+/* BINDTOOL_HEADER_FILE(freq_counter.h) */
+/* BINDTOOL_HEADER_FILE_HASH(016a01e0205d585f1c66be25af4cda12)                     */
 /***********************************************************************************/
 
 #include <pybind11/complex.h>
@@ -23,24 +23,24 @@
 
 namespace py = pybind11;
 
-#include <gnuradio/mikes_oot/freq_counter_all_weights.h>
+#include <gnuradio/mikes_oot/freq_counter.h>
 // pydoc.h is automatically generated in the build directory
-#include <freq_counter_all_weights_pydoc.h>
+#include <freq_counter_pydoc.h>
 
-void bind_freq_counter_all_weights(py::module& m)
+void bind_freq_counter(py::module& m)
 {
 
-    using freq_counter_all_weights = ::gr::mikes_oot::freq_counter_all_weights;
+    using freq_counter = ::gr::mikes_oot::freq_counter;
 
 
-    py::class_<freq_counter_all_weights,
+    py::class_<freq_counter,
                gr::sync_block,
                gr::block,
                gr::basic_block,
-               std::shared_ptr<freq_counter_all_weights>>(
-        m, "freq_counter_all_weights", D(freq_counter_all_weights))
+               std::shared_ptr<freq_counter>>(
+        m, "freq_counter", D(freq_counter))
 
-        .def(py::init(&freq_counter_all_weights::make),
+        .def(py::init(&freq_counter::make),
              py::arg("vec_len"),
              py::arg("samp_rate"),
              py::arg("retune_threshold"),
@@ -48,7 +48,7 @@ void bind_freq_counter_all_weights(py::module& m)
              py::arg("tune_avg"),
              py::arg("uhd_channel"),
              py::arg("baseband"),
-             D(freq_counter_all_weights, make))
+             D(freq_counter, make))
 
 
         ;

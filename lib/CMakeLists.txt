@@ -20,7 +20,7 @@ list(APPEND mikes_oot_sources
     base_impl.cc
     tag_headers.cc
     double_to_float_stream_impl.cc
-    freq_counter_all_weights_impl.cc
+    freq_counter_impl.cc
     float_to_double_stream_impl.cc
 )
 

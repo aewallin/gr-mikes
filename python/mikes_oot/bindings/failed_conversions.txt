@@ -5,3 +5,17 @@
 ./include/gnuradio/mikes_oot/api.hUnable to find declaration. Matcher: [(decl type==namespace_t) and (name==gr)]
 ./include/gnuradio/mikes_oot/phase_tracker_pll.hError occurred while running CASTXML xml file does not exist
 ./include/gnuradio/mikes_oot/phase_tracker_pll.hError occurred while running CASTXML xml file does not exist
+./include/gnuradio/mikes_oot/api.hUnable to find declaration. Matcher: [(decl type==namespace_t) and (name==gr)]
+./include/gnuradio/mikes_oot/phase_tracker_pll.hError occurred while running CASTXML xml file does not exist
+./include/gnuradio/mikes_oot/vector_to_stream_64bit.hError occurred while running CASTXML xml file does not exist
+./include/gnuradio/mikes_oot/stream_to_vector_64bit.hError occurred while running CASTXML xml file does not exist
+./include/gnuradio/mikes_oot/streams_to_vector_64bit.hError occurred while running CASTXML xml file does not exist
+./include/gnuradio/mikes_oot/vector_to_streams_64bit.hError occurred while running CASTXML xml file does not exist
+./include/gnuradio/mikes_oot/pub_sink_64bit.hError occurred while running CASTXML xml file does not exist
+./include/gnuradio/mikes_oot/double_to_float_stream.hError occurred while running CASTXML xml file does not exist
+./include/gnuradio/mikes_oot/freq_counter.hError occurred while running CASTXML xml file does not exist
+./include/gnuradio/mikes_oot/float_to_double_stream.hError occurred while running CASTXML xml file does not exist
+./include/gnuradio/mikes_oot/freq_counter.hError occurred while running CASTXML xml file does not exist
+./include/gnuradio/mikes_oot/freq_counter.hError occurred while running CASTXML xml file does not exist
+./include/gnuradio/mikes_oot/freq_counter.hError occurred while running CASTXML xml file does not exist
+./include/gnuradio/mikes_oot/freq_counter.hError occurred while running CASTXML xml file does not exist

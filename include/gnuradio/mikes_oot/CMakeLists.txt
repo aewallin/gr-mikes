@@ -18,6 +18,6 @@ install(FILES
     vector_to_streams_64bit.h
     pub_sink_64bit.h
     double_to_float_stream.h
-    freq_counter_all_weights.h
+    freq_counter.h
     float_to_double_stream.h DESTINATION include/gnuradio/mikes_oot
 )

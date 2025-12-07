@@ -19,7 +19,7 @@ except ImportError:
     sys.path.append(os.path.join(dirname, "bindings"))
     from gnuradio.mikes_oot import freq_counter_all_weights
 
-class qa_freq_counter_all_weights(gr_unittest.TestCase):
+class qa_freq_counter(gr_unittest.TestCase):
 
     def setUp(self):
         self.tb = gr.top_block()
@@ -129,4 +129,4 @@ class qa_freq_counter_all_weights(gr_unittest.TestCase):
 
 
 if __name__ == '__main__':
-    gr_unittest.run(qa_freq_counter_all_weights)
+    gr_unittest.run(qa_freq_counter)

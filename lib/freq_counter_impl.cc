@@ -12,7 +12,7 @@
 #include <numeric>
 
 
-#include "freq_counter_all_weights_impl.h"
+#include "freq_counter_impl.h"
 
 //  Fancy way of getting constants
 //  constexpr double am_pi = std::acos(-1);
@@ -26,14 +26,14 @@ namespace mikes_oot {
 
 using input_type = gr_complex;
 using output_type = double;
-freq_counter_all_weights::sptr freq_counter_all_weights::make(size_t vec_len,
+freq_counter::sptr freq_counter::make(size_t vec_len,
                                                               int samp_rate,
                                                               float retune_threshold,
                                                               bool auto_tune,
                                                               int tune_avg,
                                                               int uhd_channel,
                                                               bool baseband) {
-    return gnuradio::make_block_sptr<freq_counter_all_weights_impl>(vec_len,
+    return gnuradio::make_block_sptr<freq_counter_impl>(vec_len,
                                                                     samp_rate,
                                                                     retune_threshold,
                                                                     auto_tune,
@@ -47,14 +47,14 @@ freq_counter_all_weights::sptr freq_counter_all_weights::make(size_t vec_len,
 /*
  * The private constructor
  */
-freq_counter_all_weights_impl::freq_counter_all_weights_impl(size_t vec_len,
+freq_counter_impl::freq_counter_impl(size_t vec_len,
                                                               int samp_rate,
                                                               float retune_threshold,
                                                               bool auto_tune,
                                                               int tune_avg,
                                                               int uhd_channel,
                                                               bool baseband)
-    : gr::sync_block("freq_counter_all_weights",
+    : gr::sync_block("freq_counter",
                      gr::io_signature::make( 1  /* min inputs */,
                                              1  /* max inputs */,
                                              sizeof(input_type)*vec_len),
@@ -120,9 +120,9 @@ freq_counter_all_weights_impl::freq_counter_all_weights_impl(size_t vec_len,
 /*
  * Our virtual destructor.
  */
-freq_counter_all_weights_impl::~freq_counter_all_weights_impl() {}
+freq_counter_impl::~freq_counter_impl() {}
 
-int freq_counter_all_weights_impl::work(int noutput_items,
+int freq_counter_impl::work(int noutput_items,
                                         gr_vector_const_void_star& input_items,
                                         gr_vector_void_star& output_items) {
     auto in = static_cast<const input_type*>(input_items[0]);
@@ -148,7 +148,7 @@ int freq_counter_all_weights_impl::work(int noutput_items,
     }
 
     // Compute phase d_phi = atan2( iq.imag, iq.real )
-    freq_counter_all_weights_impl::data_arg(d_phi, in, 2*d_vlen, i_input*d_vlen);
+    freq_counter_impl::data_arg(d_phi, in, 2*d_vlen, i_input*d_vlen);
     // Unwrap, and count 2pi cycles
     i_ncycles = count_unwrap(d_phi+d_vlen-1, d_vlen+1, i_n_uw);
     // Pi-counter output, New version, at the end of the window
@@ -235,7 +235,7 @@ int freq_counter_all_weights_impl::work(int noutput_items,
     return noutput_items;
 }
 
-void freq_counter_all_weights_impl::data_arg(double *phi,
+void freq_counter_impl::data_arg(double *phi,
                 const gr_complex *iq, size_t nitems, size_t offset) {
   // phi is always of length d_vlen,
   // but iq is in general noutput_items * d_vlen * 2
@@ -248,7 +248,7 @@ void freq_counter_all_weights_impl::data_arg(double *phi,
 
 // not used
 /*
-void freq_counter_all_weights_impl::unwrap(double *phi, double *phi_uw,
+void freq_counter_impl::unwrap(double *phi, double *phi_uw,
                                                         size_t nitems) {
   double d_term, c_term = 0.0;
   phi_uw[0] = phi[0];
@@ -264,7 +264,7 @@ void freq_counter_all_weights_impl::unwrap(double *phi, double *phi_uw,
 }
 */
 
-int freq_counter_all_weights_impl::count_unwrap(double *phi,
+int freq_counter_impl::count_unwrap(double *phi,
                                                 size_t nitems, int *n) {
   double d_term;
   int n_uw = 0;

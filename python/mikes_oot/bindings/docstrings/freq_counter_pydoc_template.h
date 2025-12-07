@@ -15,11 +15,11 @@
  */
 
 
-static const char* __doc_gr_mikes_oot_freq_counter_all_weights = R"doc()doc";
+static const char* __doc_gr_mikes_oot_freq_counter = R"doc()doc";
 
 
-static const char* __doc_gr_mikes_oot_freq_counter_all_weights_freq_counter_all_weights =
+static const char* __doc_gr_mikes_oot_freq_counter_freq_counter =
     R"doc()doc";
 
 
-static const char* __doc_gr_mikes_oot_freq_counter_all_weights_make = R"doc()doc";
+static const char* __doc_gr_mikes_oot_freq_counter_make = R"doc()doc";

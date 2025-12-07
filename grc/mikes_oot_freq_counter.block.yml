@@ -1,10 +1,10 @@
-id: mikes_oot_freq_counter_all_weights
-label: freq_counter_all_weights
+id: mikes_oot_freq_counter
+label: freq_counter
 category: '[mikes_oot]'
 
 templates:
   imports: from gnuradio import mikes_oot
-  make: mikes_oot.freq_counter_all_weights(${vec_len}, ${samp_rate}, ${retune_threshold}, ${auto_tune}, ${tune_avg}, ${uhd_channel}, ${baseband})
+  make: mikes_oot.freq_counter(${vec_len}, ${samp_rate}, ${retune_threshold}, ${auto_tune}, ${tune_avg}, ${uhd_channel}, ${baseband})
 
 parameters:
 - id: vec_len

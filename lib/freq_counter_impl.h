@@ -8,15 +8,15 @@
 #include <vector>
 #include <string>
 
-#ifndef LIB_FREQ_COUNTER_ALL_WEIGHTS_IMPL_H_
-#define LIB_FREQ_COUNTER_ALL_WEIGHTS_IMPL_H_
+#ifndef LIB_FREQ_COUNTER_IMPL_H_
+#define LIB_FREQ_COUNTER_IMPL_H_
 
-#include <gnuradio/mikes_oot/freq_counter_all_weights.h>
+#include <gnuradio/mikes_oot/freq_counter.h>
 
 namespace gr {
 namespace mikes_oot {
 
-class freq_counter_all_weights_impl : public freq_counter_all_weights {
+class freq_counter_impl : public freq_counter {
  private:
     const size_t d_vlen;
     const int d_samp_rate;
@@ -54,14 +54,14 @@ class freq_counter_all_weights_impl : public freq_counter_all_weights {
     int count_unwrap(double *phi, size_t nitems, int *n);
 
  public:
-    freq_counter_all_weights_impl(size_t vec_len,
+    freq_counter_impl(size_t vec_len,
                                   int samp_rate,
                                   float retune_threshold,
                                   bool auto_tune,
                                   int tune_avg,
                                   int uhd_channel,
                                   bool baseband);
-    ~freq_counter_all_weights_impl();
+    ~freq_counter_impl();
     // Where all the action really happens
     int work(int noutput_items,
              gr_vector_const_void_star& input_items,
@@ -71,4 +71,4 @@ class freq_counter_all_weights_impl : public freq_counter_all_weights {
 }  // namespace mikes_oot
 }  // namespace gr
 
-#endif  // LIB_FREQ_COUNTER_ALL_WEIGHTS_IMPL_H_
+#endif  // LIB_FREQ_COUNTER_IMPL_H_

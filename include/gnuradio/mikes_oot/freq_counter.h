@@ -7,8 +7,8 @@
 
 #include <memory>
 
-#ifndef INCLUDE_GNURADIO_MIKES_OOT_FREQ_COUNTER_ALL_WEIGHTS_H_
-#define INCLUDE_GNURADIO_MIKES_OOT_FREQ_COUNTER_ALL_WEIGHTS_H_
+#ifndef INCLUDE_GNURADIO_MIKES_OOT_FREQ_COUNTER_H_
+#define INCLUDE_GNURADIO_MIKES_OOT_FREQ_COUNTER_H_
 
 #include <gnuradio/mikes_oot/api.h>
 #include <gnuradio/sync_block.h>
@@ -21,17 +21,17 @@ namespace mikes_oot {
  * \ingroup mikes_oot
  *
  */
-class MIKES_OOT_API freq_counter_all_weights : virtual public gr::sync_block {
+class MIKES_OOT_API freq_counter : virtual public gr::sync_block {
  public:
-    typedef std::shared_ptr<freq_counter_all_weights> sptr;
+    typedef std::shared_ptr<freq_counter> sptr;
 
     /*!
      * \brief Return a shared_ptr to a new instance of
-     * mikes_oot::freq_counter_all_weights.
+     * mikes_oot::freq_counter.
      *
-     * To avoid accidental use of raw pointers, mikes_oot::freq_counter_all_weights's
+     * To avoid accidental use of raw pointers, mikes_oot::freq_counter's
      * constructor is in a private implementation
-     * class. mikes_oot::freq_counter_all_weights::make is the public interface for
+     * class. mikes_oot::freq_counter::make is the public interface for
      * creating new instances.
      */
     static sptr make(size_t vec_len,
@@ -46,4 +46,4 @@ class MIKES_OOT_API freq_counter_all_weights : virtual public gr::sync_block {
 }  // namespace mikes_oot
 }  // namespace gr
 
-#endif  // INCLUDE_GNURADIO_MIKES_OOT_FREQ_COUNTER_ALL_WEIGHTS_H_
+#endif  // INCLUDE_GNURADIO_MIKES_OOT_FREQ_COUNTER_H_

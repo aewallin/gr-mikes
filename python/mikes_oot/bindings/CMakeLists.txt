@@ -35,7 +35,7 @@ list(APPEND mikes_oot_python_files
     vector_to_streams_64bit_python.cc
     pub_sink_64bit_python.cc
     double_to_float_stream_python.cc
-    freq_counter_all_weights_python.cc
+    freq_counter_python.cc
     float_to_double_stream_python.cc python_bindings.cc)
 
 GR_PYBIND_MAKE_OOT(mikes_oot

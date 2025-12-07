@@ -13,7 +13,7 @@ install(FILES
     mikes_oot_vector_to_streams_64bit.block.yml
     mikes_oot_pub_sink_64bit.block.yml
     mikes_oot_double_to_float_stream.block.yml
-    mikes_oot_freq_counter_all_weights.block.yml
+    mikes_oot_freq_counter.block.yml
     mikes_oot_float_to_double_stream.block.yml
     mikes_oot_double_vector_sink.block.yml DESTINATION share/gnuradio/grc/blocks
 )

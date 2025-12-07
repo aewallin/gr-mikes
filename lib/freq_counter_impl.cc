@@ -59,12 +59,13 @@ freq_counter_impl::freq_counter_impl(size_t vec_len,
                                              1  /* max inputs */,
                                              sizeof(input_type)*vec_len),
                      gr::io_signature::makev(1,  // min outputs
-                                             8,  // max outputs
-                                             { sizeof(output_type),  // 8 outputs
+                                             9,  // max outputs
+                                             { sizeof(output_type),  // 9 outputs
+                                               sizeof(output_type),
+                                               sizeof(output_type),  // 3
                                                sizeof(output_type),
                                                sizeof(output_type),
-                                               sizeof(output_type),
-                                               sizeof(output_type),
+                                               sizeof(output_type), // 6
                                                sizeof(output_type),
                                                sizeof(output_type),
                                                sizeof(output_type)})),
@@ -81,7 +82,9 @@ freq_counter_impl::freq_counter_impl(size_t vec_len,
                                                d_f_lambda(0.0),
                                                d_f_omega(0.0),
                                                d_omegaC(0.0),
-                                               d_omegaD(0.0) {
+                                               d_omegaD(0.0),
+                                               d_phase(0.0) {
+
     // Make sure that we have access to 2-1 = 1 vectors of past data
     this->set_history(2);
     message_port_register_out(pmt::intern("retune_cmd"));
@@ -90,7 +93,6 @@ freq_counter_impl::freq_counter_impl(size_t vec_len,
     d_tau = static_cast<double>(d_vlen)/static_cast<double>(d_samp_rate);
     double d_tau0 = static_cast<double>(1.0) / static_cast<double>(d_samp_rate);
 
-
     // Memory allocations
     // Omega counter window
     d_omega_win = new double[d_vlen];
@@ -98,8 +100,8 @@ freq_counter_impl::freq_counter_impl(size_t vec_len,
     d_omega_winD = new double[d_vlen];  // Danielson (28)
     d_delta_omega = 12.0/((d_tau0)*static_cast<double>(d_vlen)*(static_cast<double>(d_vlen)-1.0)*(static_cast<double>(d_vlen)+1.0));  // Danielson (21)
 
-    d_phi = new double[d_vlen*2];  // Phase
-    i_n_uw = new int[d_vlen*2];    // Unwrapped phase
+    d_phi = new double[d_vlen*2];  // Phase in rad
+    i_n_uw = new int[d_vlen*2];    // number of Unwraps
 
     // omega counter window
     for (size_t i = 0; i < d_vlen; i++) {
@@ -108,12 +110,6 @@ freq_counter_impl::freq_counter_impl(size_t vec_len,
         d_omega_winD[i] = static_cast<double>(static_cast<int>(i))/(static_cast<double>(d_vlen) - 1.0);  // note difference from Danielson (28)!
     }
 
-    /* debug output
-    std::cout<<"lambda weight"<<d_tau<<" "<<d_lambda_weight<<std::endl;
-    std::cout<<"omega prefactor"<<d_tau<<" "<< d_delta_omega<<std::endl;  // d_tau=1, d_delta_omega=1.2e-11
-    std::cout<<"omega win[0] "<< d_omega_win[0] <<std::endl;
-    std::cout<<"omega win[N-1] "<< d_omega_win[d_vlen-1] <<std::endl;
-    */
 }  // end constructor
 
 
@@ -126,22 +122,21 @@ int freq_counter_impl::work(int noutput_items,
                                         gr_vector_const_void_star& input_items,
                                         gr_vector_void_star& output_items) {
     auto in = static_cast<const input_type*>(input_items[0]);
+
     auto out_pi = static_cast<output_type*>(output_items[0]);
     auto out_lambda = static_cast<output_type*>(output_items[1]);
     auto out_omega = static_cast<output_type*>(output_items[2]);
-
-    if (noutput_items > 1)
-      std::cout << "noutput_items > 1: " << noutput_items << std::endl;
-
     auto out_omega_C = static_cast<output_type*>(output_items[3]);
     auto out_omega_D = static_cast<output_type*>(output_items[4]);
     auto out_rf_LO = static_cast<output_type*>(output_items[5]);
+    auto out_phase = static_cast<output_type*>(output_items[6]);
+
+    if (noutput_items > 1) // work() called with multiple output_items
+      std::cout << "noutput_items > 1: " << noutput_items << std::endl;
 
     for (int i_input = 0; i_input < noutput_items; i_input++) {
-    // Read tags from input
-    // d_tags.clear();
-    get_tags_in_window(d_tags, 0, 0, d_vlen);
 
+    get_tags_in_window(d_tags, 0, 0, d_vlen); // Read tags from input
     for (const auto& tag : d_tags) {
         if (pmt::symbol_to_string(tag.key) == std::string("rx_freq"))
             d_f_lo = pmt::to_double(tag.value);
@@ -152,10 +147,11 @@ int freq_counter_impl::work(int noutput_items,
     // Unwrap, and count 2pi cycles
     i_ncycles = count_unwrap(d_phi+d_vlen-1, d_vlen+1, i_n_uw);
     // Pi-counter output, New version, at the end of the window
-    d_f_pi = (i_ncycles + (-d_phi[d_vlen-1]+d_phi[2*d_vlen-1])/(m_2pi))/ 
+    d_f_pi = (i_ncycles + (-d_phi[d_vlen-1]+d_phi[2*d_vlen-1])/(m_2pi))/
                 ((static_cast<double>(d_vlen))/static_cast<double>(d_samp_rate));
+    d_phase = d_phi[2*d_vlen-1];
 
-    i_ncycles = count_unwrap(d_phi, 2*d_vlen, i_n_uw);  // Lambda counter, for whole 2tau length dataset
+    i_ncycles = count_unwrap(d_phi+d_vlen, 2*d_vlen, i_n_uw);  // Lambda counter, for whole 2tau length dataset
 
     double lambda_f = 0.0;  // fractional cycles
     long int lambda_i = 0;  // integer cycles
@@ -165,6 +161,7 @@ int freq_counter_impl::work(int noutput_items,
     for (size_t i_vec = 0; i_vec < d_vlen; i_vec++) {
       lambda_i += i_n_uw[d_vlen+i_vec] - i_n_uw[d_vlen-1-i_vec];
     }
+    //std::cout << "  lamnda_i " << lambda_i << " alt: " << d_vlen*i_ncycles-d_vlen*i_ncycles2 << " i_ncycles " << i_ncycles << " i2 " << i_ncycles2 << std::endl;
     // sum of integer and fractional cycles
     d_f_lambda  = ((static_cast<double>(d_samp_rate) ) / (static_cast<double>(d_vlen*d_vlen)) )*(static_cast<double>(lambda_i) + lambda_f/  m_2pi);
 
@@ -230,8 +227,9 @@ int freq_counter_impl::work(int noutput_items,
     out_rf_LO[i_input] = d_f_lo;
     out_omega_C[i_input] = d_omegaC;
     out_omega_D[i_input] = d_omegaD;
-    }  // loop noutput_items
+    out_phase[i_input] = d_phase;
 
+    }  // end loop over noutput_items
     return noutput_items;
 }
 
@@ -264,8 +262,7 @@ void freq_counter_impl::unwrap(double *phi, double *phi_uw,
 }
 */
 
-int freq_counter_impl::count_unwrap(double *phi,
-                                                size_t nitems, int *n) {
+int freq_counter_impl::count_unwrap(double *phi, size_t nitems, int *n) {
   double d_term;
   int n_uw = 0;
   n[0] = 0;

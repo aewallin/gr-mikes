@@ -54,7 +54,9 @@ outputs:
 - label: freq_LO
   dtype: f64
   optional: 1
-
+- label: phase
+  dtype: f64
+  optional: 1
 - label: retune_cmd
   domain: message
   optional: 1

@@ -45,6 +45,7 @@ class freq_counter_impl : public freq_counter {
     double d_omegaDf;
     double d_omegaC;
     double d_omegaD;
+    double d_phase; // phase output
     double d_f_sum;
     pmt::pmt_t d_tune_dict = pmt::make_dict();
     std::vector<tag_t> d_tags;

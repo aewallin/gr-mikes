@@ -151,7 +151,7 @@ int freq_counter_impl::work(int noutput_items,
                 ((static_cast<double>(d_vlen))/static_cast<double>(d_samp_rate));
     d_phase = d_phi[2*d_vlen-1];
 
-    i_ncycles = count_unwrap(d_phi+d_vlen, 2*d_vlen, i_n_uw);  // Lambda counter, for whole 2tau length dataset
+    i_ncycles = count_unwrap(d_phi, 2*d_vlen, i_n_uw);  // Lambda counter, for whole 2tau length dataset
 
     double lambda_f = 0.0;  // fractional cycles
     long int lambda_i = 0;  // integer cycles

@@ -36,9 +36,9 @@ class freq_counter_impl : public freq_counter {
     double d_f_lo;
     int d_i_avg;
     int i_ncycles;
-    double d_f_pi_y;  // Pi-counter output
+    double d_f_pi;  // Pi-counter output
     double d_f_lambda;  // Lambda-counter output
-    double d_f_omega_w;  // Omega-counter output
+    double d_f_omega;  // Omega-counter output
     double d_omegaCi;
     double d_omegaDi;
     double d_omegaCf;

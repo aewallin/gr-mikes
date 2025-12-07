@@ -37,12 +37,12 @@ inputs:
   vlen: ${vec_len}
 
 outputs:
-- label: freq_pi_y
+- label: freq_pi
   dtype: f64
 - label: freq_lambda
   dtype: f64
   optional: 1
-- label: freq_omega_w
+- label: freq_omega
   dtype: f64
   optional: 1
 - label: omegaC

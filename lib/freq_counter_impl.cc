@@ -77,9 +77,9 @@ freq_counter_impl::freq_counter_impl(size_t vec_len,
                                                d_baseband(baseband),
                                                d_f_lo(0.0),
                                                d_i_avg(0),
-                                               d_f_pi_y(0.0),
+                                               d_f_pi(0.0),
                                                d_f_lambda(0.0),
-                                               d_f_omega_w(0.0),
+                                               d_f_omega(0.0),
                                                d_omegaC(0.0),
                                                d_omegaD(0.0) {
     // Make sure that we have access to 2-1 = 1 vectors of past data
@@ -126,9 +126,9 @@ int freq_counter_impl::work(int noutput_items,
                                         gr_vector_const_void_star& input_items,
                                         gr_vector_void_star& output_items) {
     auto in = static_cast<const input_type*>(input_items[0]);
-    auto out_pi_y = static_cast<output_type*>(output_items[0]);
+    auto out_pi = static_cast<output_type*>(output_items[0]);
     auto out_lambda = static_cast<output_type*>(output_items[1]);
-    auto out_omega_w = static_cast<output_type*>(output_items[2]);
+    auto out_omega = static_cast<output_type*>(output_items[2]);
 
     if (noutput_items > 1)
       std::cout << "noutput_items > 1: " << noutput_items << std::endl;
@@ -152,7 +152,7 @@ int freq_counter_impl::work(int noutput_items,
     // Unwrap, and count 2pi cycles
     i_ncycles = count_unwrap(d_phi+d_vlen-1, d_vlen+1, i_n_uw);
     // Pi-counter output, New version, at the end of the window
-    d_f_pi_y = (i_ncycles + (-d_phi[d_vlen-1]+d_phi[2*d_vlen-1])/(m_2pi))/ 
+    d_f_pi = (i_ncycles + (-d_phi[d_vlen-1]+d_phi[2*d_vlen-1])/(m_2pi))/ 
                 ((static_cast<double>(d_vlen))/static_cast<double>(d_samp_rate));
 
     i_ncycles = count_unwrap(d_phi, 2*d_vlen, i_n_uw);  // Lambda counter, for whole 2tau length dataset
@@ -189,13 +189,13 @@ int freq_counter_impl::work(int noutput_items,
     }
 
     // sum of fractional and integer parts
-    d_f_omega_w = omega_i + (omega_f/m_2pi);
+    d_f_omega = omega_i + (omega_f/m_2pi);
     d_omegaC = d_omegaCi + (d_omegaCf/m_2pi);
     d_omegaD = d_omegaDi + (d_omegaDf/m_2pi);
 
     if (d_auto_tune) {
         if (d_i_avg < d_tune_avg) {
-            d_f_sum += d_f_pi_y;
+            d_f_sum += d_f_pi;
             d_i_avg += 1;
         } else {
         d_f_sum /= d_tune_avg;
@@ -218,14 +218,14 @@ int freq_counter_impl::work(int noutput_items,
     // Output in Hz
     if (d_baseband) {
         // Baseband frequencies
-        out_pi_y[i_input] = d_f_pi_y;
+        out_pi[i_input] = d_f_pi;
         out_lambda[i_input] = d_f_lambda;
-        out_omega_w[i_input] = d_f_omega_w;
+        out_omega[i_input] = d_f_omega;
     } else {
         // Full RF frequencies
-        out_pi_y[i_input] = d_f_pi_y + d_f_lo;
+        out_pi[i_input] = d_f_pi + d_f_lo;
         out_lambda[i_input] = d_f_lambda + d_f_lo;
-        out_omega_w[i_input] = d_f_omega_w;  // Removed + d_f_lo
+        out_omega[i_input] = d_f_omega;  // Removed + d_f_lo
     }
     out_rf_LO[i_input] = d_f_lo;
     out_omega_C[i_input] = d_omegaC;

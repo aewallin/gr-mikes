@@ -6,6 +6,17 @@ GnuRadio C++ oot module implementing:
 * float64 number type conversion to float32 
 * ZeroMQ float64 source block, for downstream processing of frequency counter data (e.g. plotting, InfluxDB, etc.)
 
+## Build and Install
+
+```console
+$ mkdir build
+$ cd build
+$ cmake ..
+$ make
+$ sudo make install
+$ sudo ldconfig
+```
+
 ## References
 
 * Sherman, Jordens, "Oscillator metrology with software defined radio", https://doi.org/10.1063/1.4950898

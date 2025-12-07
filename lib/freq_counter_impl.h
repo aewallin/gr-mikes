@@ -29,7 +29,8 @@ class freq_counter_impl : public freq_counter {
     double * d_omega_win;
     double * d_omega_winC;
     double * d_omega_winD;
-    double * d_phi;
+    double * d_phi; // phase of input complex number
+    double * d_abs; // norm of input complex number
     int *    i_n_uw;
     double d_tau;
     double d_delta_omega;
@@ -46,10 +47,12 @@ class freq_counter_impl : public freq_counter {
     double d_omegaC;
     double d_omegaD;
     double d_phase; // phase output
+    double d_abs_mean; // mean(norm)
+    double d_min_snr; // minimum SNR
     double d_f_sum;
     pmt::pmt_t d_tune_dict = pmt::make_dict();
     std::vector<tag_t> d_tags;
-    void data_arg(double *phi, const gr_complex *iq,
+    void data_arg(double *phi, double *absZ, const gr_complex *iq,
                     size_t nitems, size_t offset);
     // void unwrap(double *phi, double *phi_uw, size_t nitems);
     int count_unwrap(double *phi, size_t nitems, int *n);

@@ -83,7 +83,8 @@ freq_counter_impl::freq_counter_impl(size_t vec_len,
                                                d_f_omega(0.0),
                                                d_omegaC(0.0),
                                                d_omegaD(0.0),
-                                               d_phase(0.0) {
+                                               d_phase(0.0),
+                                               d_min_snr(0.0) {
 
     // Make sure that we have access to 2-1 = 1 vectors of past data
     this->set_history(2);
@@ -101,6 +102,7 @@ freq_counter_impl::freq_counter_impl(size_t vec_len,
     d_delta_omega = 12.0/((d_tau0)*static_cast<double>(d_vlen)*(static_cast<double>(d_vlen)-1.0)*(static_cast<double>(d_vlen)+1.0));  // Danielson (21)
 
     d_phi = new double[d_vlen*2];  // Phase in rad
+    d_abs = new double[d_vlen*2];  // Norm
     i_n_uw = new int[d_vlen*2];    // number of Unwraps
 
     // omega counter window
@@ -130,9 +132,10 @@ int freq_counter_impl::work(int noutput_items,
     auto out_omega_D = static_cast<output_type*>(output_items[4]);
     auto out_rf_LO = static_cast<output_type*>(output_items[5]);
     auto out_phase = static_cast<output_type*>(output_items[6]);
+    auto out_min_snr = static_cast<output_type*>(output_items[7]);
 
-    if (noutput_items > 1) // work() called with multiple output_items
-      std::cout << "noutput_items > 1: " << noutput_items << std::endl;
+    //if (noutput_items > 1) // work() called with multiple output_items
+    //  std::cout << "noutput_items > 1: " << noutput_items << std::endl;
 
     for (int i_input = 0; i_input < noutput_items; i_input++) {
 
@@ -143,7 +146,21 @@ int freq_counter_impl::work(int noutput_items,
     }
 
     // Compute phase d_phi = atan2( iq.imag, iq.real )
-    freq_counter_impl::data_arg(d_phi, in, 2*d_vlen, i_input*d_vlen);
+    //               d_abs = norm( iq )
+    freq_counter_impl::data_arg(d_phi, d_abs, in, 2*d_vlen, i_input*d_vlen);
+    d_abs_mean = std::reduce(d_abs+d_vlen, d_abs+2*d_vlen)/d_vlen;
+
+    double accum=0.0; // compute standard deviation
+    std::for_each(d_abs+d_vlen, d_abs+2*d_vlen, [&](const double d) {
+        accum += (d - d_abs_mean) * (d - d_abs_mean);
+    });
+    double abs_stdev = std::sqrt(accum / (d_vlen));
+    // minimum SNR during gate time
+    d_min_snr = *std::min_element(d_abs+d_vlen, d_abs+2*d_vlen)/abs_stdev;
+
+    //std::cout << " d_abs_mean " << d_abs_mean << " minSNR " << min_snr << std::endl;
+
+    //std::cout << "  lamnda_i " << lambda_i << " alt: " << d_vlen*i_ncycles-d_vlen*i_ncycles2 << " i_ncycles " << i_ncycles << " i2 " << i_ncycles2 << std::endl;
     // Unwrap, and count 2pi cycles
     i_ncycles = count_unwrap(d_phi+d_vlen-1, d_vlen+1, i_n_uw);
     // Pi-counter output, New version, at the end of the window
@@ -228,19 +245,20 @@ int freq_counter_impl::work(int noutput_items,
     out_omega_C[i_input] = d_omegaC;
     out_omega_D[i_input] = d_omegaD;
     out_phase[i_input] = d_phase;
-
+    out_min_snr[i_input] = d_min_snr;
     }  // end loop over noutput_items
     return noutput_items;
 }
 
-void freq_counter_impl::data_arg(double *phi,
+void freq_counter_impl::data_arg(double *phiZ, double *absZ,
                 const gr_complex *iq, size_t nitems, size_t offset) {
   // phi is always of length d_vlen,
   // but iq is in general noutput_items * d_vlen * 2
   // so index accordingly
   for (size_t i = 0; i < nitems; i++) {
-    phi[i] = std::atan2(static_cast<double>(iq[offset+i].imag()),
+    phiZ[i] = std::atan2(static_cast<double>(iq[offset+i].imag()),
                         static_cast<double>(iq[offset+i].real()));
+    absZ[i] = std::norm(iq[offset+i]);
   }
 }
 

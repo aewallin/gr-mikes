@@ -19,6 +19,7 @@ add_compile_options(-Wall -Wextra -pedantic )
 cmake_minimum_required(VERSION 3.8)
 project(gr-mikes_oot CXX C)
 enable_testing()
+INCLUDE(CheckCXXSourceCompiles)
 
 # Install to PyBOMBS target prefix if defined
 if(DEFINED ENV{PYBOMBS_PREFIX})

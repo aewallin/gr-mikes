@@ -11,7 +11,7 @@
 # Build type can still be overridden by setting -DCMAKE_BUILD_TYPE=
 set(CMAKE_BUILD_TYPE "Release" CACHE STRING "")
 #add_compile_options(-Wall -Wextra -pedantic -Werror -Wextra) 
-add_compile_options(-Wall -Wextra -pedantic )
+add_compile_options(-Wall -Wextra -pedantic -Wextra)
 
 ########################################################################
 # Project setup

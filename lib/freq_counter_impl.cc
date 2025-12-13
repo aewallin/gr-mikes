@@ -10,16 +10,17 @@
 #include <iostream>
 #include <iomanip>
 #include <numeric>
+#include <algorithm>
 
 
 #include "freq_counter_impl.h"
 
 //  Fancy way of getting constants
-//  constexpr double am_pi = std::acos(-1);
-//  constexpr double am_2pi = 2.0*std::acos(-1);
+constexpr double m_pi = std::acos(-1);
+constexpr double m_2pi = 2.0*std::acos(-1);
 
-constexpr double m_pi = 3.141592653589793238462643;
-constexpr double m_2pi = 2.0*3.141592653589793238462643;
+// constexpr double m_pi = 3.141592653589793238462643;
+// constexpr double m_2pi = 2.0*3.141592653589793238462643;
 
 namespace gr {
 namespace mikes_oot {
@@ -27,19 +28,19 @@ namespace mikes_oot {
 using input_type = gr_complex;
 using output_type = double;
 freq_counter::sptr freq_counter::make(size_t vec_len,
-                                                              int samp_rate,
-                                                              float retune_threshold,
-                                                              bool auto_tune,
-                                                              int tune_avg,
-                                                              int uhd_channel,
-                                                              bool baseband) {
+                                        int samp_rate,
+                                        float retune_threshold,
+                                        bool auto_tune,
+                                        int tune_avg,
+                                        int uhd_channel,
+                                        bool baseband) {
     return gnuradio::make_block_sptr<freq_counter_impl>(vec_len,
-                                                                    samp_rate,
-                                                                    retune_threshold,
-                                                                    auto_tune,
-                                                                    tune_avg,
-                                                                    uhd_channel,
-                                                                    baseband);
+                                                        samp_rate,
+                                                        retune_threshold,
+                                                        auto_tune,
+                                                        tune_avg,
+                                                        uhd_channel,
+                                                        baseband);
 }
 
 
@@ -48,44 +49,42 @@ freq_counter::sptr freq_counter::make(size_t vec_len,
  * The private constructor
  */
 freq_counter_impl::freq_counter_impl(size_t vec_len,
-                                                              int samp_rate,
-                                                              float retune_threshold,
-                                                              bool auto_tune,
-                                                              int tune_avg,
-                                                              int uhd_channel,
-                                                              bool baseband)
+                                            int samp_rate,
+                                            float retune_threshold,
+                                            bool auto_tune,
+                                            int tune_avg,
+                                            int uhd_channel,
+                                            bool baseband)
     : gr::sync_block("freq_counter",
-                     gr::io_signature::make( 1  /* min inputs */,
-                                             1  /* max inputs */,
-                                             sizeof(input_type)*vec_len),
-                     gr::io_signature::makev(1,  // min outputs
-                                             9,  // max outputs
-                                             { sizeof(output_type),  // 9 outputs
-                                               sizeof(output_type),
-                                               sizeof(output_type),  // 3
-                                               sizeof(output_type),
-                                               sizeof(output_type),
-                                               sizeof(output_type), // 6
-                                               sizeof(output_type),
-                                               sizeof(output_type),
-                                               sizeof(output_type)})),
-                                               d_vlen(vec_len),
-                                               d_samp_rate(samp_rate),
-                                               d_retune_threshold(retune_threshold),
-                                               d_auto_tune(auto_tune),
-                                               d_tune_avg(tune_avg),
-                                               d_uhd_channel(uhd_channel),
-                                               d_baseband(baseband),
-                                               d_f_lo(0.0),
-                                               d_i_avg(0),
-                                               d_f_pi(0.0),
-                                               d_f_lambda(0.0),
-                                               d_f_omega(0.0),
-                                               d_omegaC(0.0),
-                                               d_omegaD(0.0),
-                                               d_phase(0.0),
-                                               d_min_snr(0.0) {
-
+        gr::io_signature::make(1  /* min inputs */,
+                                1  /* max inputs */,
+                                sizeof(input_type)*vec_len),
+        gr::io_signature::makev(1,  // min outputs
+                                8,  // max outputs
+                                { sizeof(output_type),     // 1, pi
+                                  sizeof(output_type),     // 2, lambda
+                                  sizeof(output_type),     // 3, omega
+                                  sizeof(output_type),     // 4, omegaC
+                                  sizeof(output_type),     // 5, omegaD
+                                  sizeof(output_type),     // 6, LO
+                                  sizeof(output_type),     // 7, phase
+                                  sizeof(output_type)})),  // 8, SNR
+                                  d_vlen(vec_len),
+                                  d_samp_rate(samp_rate),
+                                  d_retune_threshold(retune_threshold),
+                                  d_auto_tune(auto_tune),
+                                  d_tune_avg(tune_avg),
+                                  d_uhd_channel(uhd_channel),
+                                  d_baseband(baseband),
+                                  d_f_lo(0.0),
+                                  d_i_avg(0),
+                                  d_f_pi(0.0),
+                                  d_f_lambda(0.0),
+                                  d_f_omega(0.0),
+                                  d_omegaC(0.0),
+                                  d_omegaD(0.0),
+                                  d_phase(0.0),
+                                  d_min_snr(0.0) {
     // Make sure that we have access to 2-1 = 1 vectors of past data
     this->set_history(2);
     message_port_register_out(pmt::intern("retune_cmd"));
@@ -111,7 +110,6 @@ freq_counter_impl::freq_counter_impl(size_t vec_len,
         d_omega_winC[i] = 1.0;
         d_omega_winD[i] = static_cast<double>(static_cast<int>(i))/(static_cast<double>(d_vlen) - 1.0);  // note difference from Danielson (28)!
     }
-
 }  // end constructor
 
 
@@ -134,51 +132,41 @@ int freq_counter_impl::work(int noutput_items,
     auto out_phase = static_cast<output_type*>(output_items[6]);
     auto out_min_snr = static_cast<output_type*>(output_items[7]);
 
-    //if (noutput_items > 1) // work() called with multiple output_items
-    //  std::cout << "noutput_items > 1: " << noutput_items << std::endl;
+    // if (noutput_items > 1) // work() called with multiple output_items
+    //   std::cout << "noutput_items > 1: " << noutput_items << std::endl;
 
     for (int i_input = 0; i_input < noutput_items; i_input++) {
-
-    get_tags_in_window(d_tags, 0, 0, d_vlen); // Read tags from input
+    get_tags_in_window(d_tags, 0, 0, d_vlen);  // Read tags from input
     for (const auto& tag : d_tags) {
-        if (pmt::symbol_to_string(tag.key) == std::string("rx_freq"))
+        if (pmt::symbol_to_string(tag.key) == std::string("rx_freq")) {
             d_f_lo = pmt::to_double(tag.value);
+            std::cout << std::fixed << " LO " <<  d_f_lo << std::endl;
+        }
     }
 
     // Compute phase d_phi = atan2( iq.imag, iq.real )
     //               d_abs = norm( iq )
     freq_counter_impl::data_arg(d_phi, d_abs, in, 2*d_vlen, i_input*d_vlen);
-    d_abs_mean = std::reduce(d_abs+d_vlen, d_abs+2*d_vlen)/d_vlen;
-
-    double accum=0.0; // compute standard deviation
-    std::for_each(d_abs+d_vlen, d_abs+2*d_vlen, [&](const double d) {
-        accum += (d - d_abs_mean) * (d - d_abs_mean);
-    });
-    double abs_stdev = std::sqrt(accum / (d_vlen));
     // minimum SNR during gate time
-    d_min_snr = *std::min_element(d_abs+d_vlen, d_abs+2*d_vlen)/abs_stdev;
+    d_min_snr = *std::min_element(d_abs+d_vlen, d_abs+2*d_vlen);
 
-    //std::cout << " d_abs_mean " << d_abs_mean << " minSNR " << min_snr << std::endl;
+    // std::cout << " d_abs_mean " << d_abs_mean << " minSNR " << min_snr << std::endl;
 
-    //std::cout << "  lamnda_i " << lambda_i << " alt: " << d_vlen*i_ncycles-d_vlen*i_ncycles2 << " i_ncycles " << i_ncycles << " i2 " << i_ncycles2 << std::endl;
+    // std::cout << "  lamnda_i " << lambda_i << " alt: " << d_vlen*i_ncycles-d_vlen*i_ncycles2 << " i_ncycles " << i_ncycles << " i2 " << i_ncycles2 << std::endl;
     // Unwrap, and count 2pi cycles
-    i_ncycles = count_unwrap(d_phi+d_vlen-1, d_vlen+1, i_n_uw);
+    i_ncycles = count_unwrap(d_phi, 2*d_vlen, i_n_uw);
     // Pi-counter output, New version, at the end of the window
-    d_f_pi = (i_ncycles + (-d_phi[d_vlen-1]+d_phi[2*d_vlen-1])/(m_2pi))/
-                ((static_cast<double>(d_vlen))/static_cast<double>(d_samp_rate));
-    d_phase = d_phi[2*d_vlen-1];
-
-    i_ncycles = count_unwrap(d_phi, 2*d_vlen, i_n_uw);  // Lambda counter, for whole 2tau length dataset
-
+    d_f_pi = (i_n_uw[2*d_vlen-1]-i_n_uw[d_vlen-1] + (-d_phi[d_vlen-1]+d_phi[2*d_vlen-1])/(m_2pi))/d_tau;
+    d_phase = d_phi[2*d_vlen-1];  // phase output
     double lambda_f = 0.0;  // fractional cycles
-    long int lambda_i = 0;  // integer cycles
+    int lambda_i = 0;  // integer cycles
     lambda_f = -std::accumulate(d_phi, d_phi+d_vlen, 0.0);  // negative weight, first half of window
     lambda_f = std::accumulate(d_phi+d_vlen, d_phi+2*d_vlen, lambda_f);  // positive weight, second half of window
 
     for (size_t i_vec = 0; i_vec < d_vlen; i_vec++) {
       lambda_i += i_n_uw[d_vlen+i_vec] - i_n_uw[d_vlen-1-i_vec];
     }
-    //std::cout << "  lamnda_i " << lambda_i << " alt: " << d_vlen*i_ncycles-d_vlen*i_ncycles2 << " i_ncycles " << i_ncycles << " i2 " << i_ncycles2 << std::endl;
+    // std::cout << "  lamnda_i " << lambda_i << " alt: " << d_vlen*i_ncycles-d_vlen*i_ncycles2 << " i_ncycles " << i_ncycles << " i2 " << i_ncycles2 << std::endl;
     // sum of integer and fractional cycles
     d_f_lambda  = ((static_cast<double>(d_samp_rate) ) / (static_cast<double>(d_vlen*d_vlen)) )*(static_cast<double>(lambda_i) + lambda_f/  m_2pi);
 
@@ -252,33 +240,14 @@ int freq_counter_impl::work(int noutput_items,
 
 void freq_counter_impl::data_arg(double *phiZ, double *absZ,
                 const gr_complex *iq, size_t nitems, size_t offset) {
-  // phi is always of length d_vlen,
-  // but iq is in general noutput_items * d_vlen * 2
-  // so index accordingly
   for (size_t i = 0; i < nitems; i++) {
     phiZ[i] = std::atan2(static_cast<double>(iq[offset+i].imag()),
                         static_cast<double>(iq[offset+i].real()));
-    absZ[i] = std::norm(iq[offset+i]);
+    absZ[i] = static_cast<double>(std::abs(iq[offset+i]));
   }
 }
 
-// not used
-/*
-void freq_counter_impl::unwrap(double *phi, double *phi_uw,
-                                                        size_t nitems) {
-  double d_term, c_term = 0.0;
-  phi_uw[0] = phi[0];
-  for (size_t i = 1; i < nitems; i++) {
-    d_term = phi[i] - phi[i-1];
-    if (d_term > m_pi) {
-      c_term -= m_2pi;
-    } else if (d_term < -m_pi) {
-      c_term += m_2pi;
-    }
-    phi_uw[i] = phi[i] + c_term;
-  }
-}
-*/
+
 
 int freq_counter_impl::count_unwrap(double *phi, size_t nitems, int *n) {
   double d_term;
